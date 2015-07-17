@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using LibGit2Sharp;
 
@@ -11,7 +12,7 @@ namespace git_fukd
         {
             var changes = new Dictionary<string, int>();
 
-            using (var repo = new Repository(@"A:\home\Projects\fuck"))
+            using (var repo = new Repository(Directory.GetCurrentDirectory()))
             {
                 var commits = repo.Commits;
                 Commit lastCommit = null;
