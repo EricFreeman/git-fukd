@@ -50,7 +50,10 @@ namespace git_fukd
                 }
             }
 
-            Console.ReadLine();
+            foreach (var change in changes.ToList().OrderByDescending(x => x.Value))
+            {
+                Console.WriteLine(change.Key + " - " + change.Value);
+            }
         }
     }
 }
