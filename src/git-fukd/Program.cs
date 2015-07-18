@@ -12,7 +12,7 @@ namespace git_fukd
         {
             var changes = new Dictionary<string, int>();
 
-            using (var repo = new Repository(Directory.GetCurrentDirectory()))
+            using (var repo = new Repository(@"C:\home\projects\git-fukd"))
             {
                 var commits = repo.Commits;
                 Commit lastCommit = null;
@@ -30,23 +30,12 @@ namespace git_fukd
                     var parentCommitTree = lastCommit.Tree;
                     lastCommit = commit;
 
-                    repo.Diff
-                        .Compare<TreeChanges>(parentCommitTree, tree)
-                        .ToList()
-                        .ForEach(commitChanges =>
-                        {
-                            var key = commitChanges.Path;
+                    Diff(repo, parentCommitTree, tree, changes);
 
-                            if (changes.ContainsKey(key))
-                            {
-                                var value = changes[key] + 1;
-                                changes[key] = value;
-                            }
-                            else
-                            {
-                                changes[key] = 1;
-                            }
-                        });
+                    if (commit == commits.Last())
+                    {
+                        Diff(repo, null, tree, changes);
+                    }
                 }
             }
 
@@ -54,6 +43,27 @@ namespace git_fukd
             {
                 Console.WriteLine(change.Key + " - " + change.Value);
             }
+        }
+
+        private static void Diff(Repository repo, Tree parentCommitTree, Tree tree, Dictionary<string, int> changes)
+        {
+            repo.Diff
+                .Compare<TreeChanges>(parentCommitTree, tree)
+                .ToList()
+                .ForEach(commitChanges =>
+                {
+                    var key = commitChanges.Path;
+
+                    if (changes.ContainsKey(key))
+                    {
+                        var value = changes[key] + 1;
+                        changes[key] = value;
+                    }
+                    else
+                    {
+                        changes[key] = 1;
+                    }
+                });
         }
     }
 }
