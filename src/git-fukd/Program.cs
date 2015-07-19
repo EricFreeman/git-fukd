@@ -12,7 +12,7 @@ namespace git_fukd
         {
             var changes = new Dictionary<string, int>();
 
-            using (var repo = new Repository(@"C:\home\projects\git-fukd"))
+            using (var repo = new Repository(Directory.GetCurrentDirectory()))
             {
                 var commits = repo.Commits;
                 Commit lastCommit = null;
