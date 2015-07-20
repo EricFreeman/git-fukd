@@ -11,6 +11,8 @@ namespace git_fukd
         static void Main(string[] args)
         {
             var changes = new Dictionary<string, int>();
+            var spinner = new ConsoleSpiner();
+            Console.Write("Working....");
 
             using (var repo = new Repository(Directory.GetCurrentDirectory()))
             {
@@ -19,6 +21,8 @@ namespace git_fukd
 
                 foreach (var commit in commits)
                 {
+                    spinner.Turn();
+
                     var tree = commit.Tree;
 
                     if (lastCommit == null)
@@ -38,6 +42,8 @@ namespace git_fukd
                     }
                 }
             }
+
+            Console.WriteLine();
 
             foreach (var change in changes.ToList().OrderByDescending(x => x.Value))
             {
