@@ -11,13 +11,23 @@ namespace git_fukd
         static void Main(string[] args)
         {
             var changes = new Dictionary<string, int>();
+            var files = new List<string>();
             var spinner = new ConsoleSpiner();
             Console.Write("Working....");
 
-            using (var repo = new Repository(Directory.GetCurrentDirectory()))
+            var directory = Directory.GetCurrentDirectory();
+            directory = "C:\\home\\projects\\git-fukd";
+            using (var repo = new Repository(directory))
             {
                 var commits = repo.Commits;
                 Commit lastCommit = null;
+
+                var start = repo.Tags.First().Target.Sha;
+                var end = repo.Tags.Last().Target.Sha;
+
+                var isLooking = false;
+                var isLast = false;
+
 
                 foreach (var commit in commits)
                 {
@@ -34,42 +44,45 @@ namespace git_fukd
                     var parentCommitTree = lastCommit.Tree;
                     lastCommit = commit;
 
-                    Diff(repo, parentCommitTree, tree, changes);
-
-                    if (commit == commits.Last())
+                    if (commit.Sha == start || commit.Sha == end)
                     {
-                        Diff(repo, null, tree, changes);
+                        isLooking = !isLooking;
+                        isLast = !isLooking;
                     }
-                }
+
+                    if (isLooking || isLast)
+                    {
+                        if (isLast)
+                        {
+                            parentCommitTree = null;
+                        }
+
+                        var c = repo.Diff
+                           .Compare<TreeChanges>(parentCommitTree, tree)
+                           .ToList();
+
+                           c.ForEach(commitChanges =>
+                           {
+                               var file = commitChanges.Path;
+                               if (file.EndsWith(".sql") && !files.Contains(file))
+                               {
+                                   files.Add(file);
+                               }
+                           });
+                    }
+
+                    if (isLast)
+                    {
+                        break;
+                    }
             }
 
             Console.WriteLine();
 
-            foreach (var change in changes.ToList().OrderByDescending(x => x.Value))
+            foreach (var change in files)
             {
-                Console.WriteLine(change.Key + " - " + change.Value);
+                Console.WriteLine(change);
             }
-        }
-
-        private static void Diff(Repository repo, Tree parentCommitTree, Tree tree, Dictionary<string, int> changes)
-        {
-            repo.Diff
-                .Compare<TreeChanges>(parentCommitTree, tree)
-                .ToList()
-                .ForEach(commitChanges =>
-                {
-                    var key = commitChanges.Path;
-
-                    if (changes.ContainsKey(key))
-                    {
-                        var value = changes[key] + 1;
-                        changes[key] = value;
-                    }
-                    else
-                    {
-                        changes[key] = 1;
-                    }
-                });
         }
     }
 }
